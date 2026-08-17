@@ -1,5 +1,11 @@
 import { getGeminiClient } from "@/lib/gemini/geminiClient";
-import { GEMINI_MODEL, WORDS_PER_SECOND } from "@/lib/constants";
+import {
+  GEMINI_MODEL,
+  SCRIPT_MAX_WORDS,
+  SCRIPT_MIN_WORDS,
+  SCRIPT_RETRY_SLACK_WORDS,
+  WORDS_PER_SECOND,
+} from "@/lib/constants";
 import { countWords } from "@/lib/utils/wordCount";
 import type { LocationHighlights, PropertyImage, ScriptGenerationResult } from "@/types/property";
 
@@ -19,7 +25,10 @@ export interface ScriptGenerationInput {
 function buildPrompt(input: ScriptGenerationInput): string {
   const { description, locationHighlights } = input;
 
-  return `Write a 30-second real-estate voiceover narration script for a property listing.
+  const minSeconds = Math.round(SCRIPT_MIN_WORDS / WORDS_PER_SECOND);
+  const maxSeconds = Math.round(SCRIPT_MAX_WORDS / WORDS_PER_SECOND);
+
+  return `Write a real-estate voiceover narration script for a property listing.
 
 PRIORITY ORDER (strict): the apartment description below is the PRIMARY source of truth and should shape most of the script. The neighborhood highlights are SECONDARY supporting detail, woven in briefly. ${
     input.images?.length
@@ -38,10 +47,11 @@ NEIGHBORHOOD HIGHLIGHTS (secondary):
 - Attractions & vibe: ${locationHighlights.attractionsAndVibe}
 
 REQUIREMENTS:
-- Target length: 65-75 spoken words (about 28-32 seconds read aloud).
+- Target length: ${SCRIPT_MIN_WORDS}-${SCRIPT_MAX_WORDS} spoken words (about ${minSeconds}-${maxSeconds} seconds read aloud).
 - Warm, high-converting, natural voiceover tone — not a bullet list.
 - Open with a hook about the apartment itself, close with a sense of lifestyle/location.
-- Output ONLY the narration script text, with no title, labels, or quotation marks.`;
+- Output ONLY the narration script text, with no title, labels, or quotation marks.
+- make sure to include some of the highlights inside the script, but not make it the center of the script`;
 }
 
 async function callGemini(input: ScriptGenerationInput): Promise<string> {
@@ -78,13 +88,14 @@ export async function generateScript(input: ScriptGenerationInput): Promise<Scri
   let wordCount = countWords(script);
 
   // One corrective retry if the model drifts noticeably outside the target range.
-  if (wordCount < 55 || wordCount > 85) {
+  const targetCenter = (SCRIPT_MIN_WORDS + SCRIPT_MAX_WORDS) / 2;
+  if (wordCount < SCRIPT_MIN_WORDS - SCRIPT_RETRY_SLACK_WORDS || wordCount > SCRIPT_MAX_WORDS + SCRIPT_RETRY_SLACK_WORDS) {
     const corrected = await callGemini({
       ...input,
-      description: `${input.description}\n\n(Note: a previous attempt was ${wordCount} words — aim strictly for 65-75 words this time.)`,
+      description: `${input.description}\n\n(Note: a previous attempt was ${wordCount} words — aim strictly for ${SCRIPT_MIN_WORDS}-${SCRIPT_MAX_WORDS} words this time.)`,
     });
     const correctedWordCount = countWords(corrected);
-    if (Math.abs(correctedWordCount - 70) < Math.abs(wordCount - 70)) {
+    if (Math.abs(correctedWordCount - targetCenter) < Math.abs(wordCount - targetCenter)) {
       script = corrected;
       wordCount = correctedWordCount;
     }

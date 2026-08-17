@@ -6,7 +6,9 @@ export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"] as c
 
 export const GEMINI_MODEL = "gemini-3.7-flash";
 
-export const SCRIPT_MIN_WORDS = 65;
-export const SCRIPT_MAX_WORDS = 75;
+export const SCRIPT_MIN_WORDS = 90;
+export const SCRIPT_MAX_WORDS = 130;
+/** Retry slack around the target range before accepting a first-pass script as close enough. */
+export const SCRIPT_RETRY_SLACK_WORDS = 10;
 /** Deterministic timing assumption: average spoken words per second for narration pacing. */
 export const WORDS_PER_SECOND = 2.3;

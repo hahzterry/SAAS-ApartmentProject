@@ -43,19 +43,21 @@ export async function getLocationHighlights(address: string): Promise<LocationHi
 async function queryMapsGrounding(
   address: string,
 ): Promise<{ pillars: MapsPillars; sources: GroundingSource[] }> {
-  const prompt = `Research real, currently accurate places near this property address using Google Maps: "${address}".
+  const prompt = `The exact search anchor point is this property address: "${address}". Use Google Maps to find places genuinely closest to this precise address — not merely well-known or prominent places elsewhere in the same city.
+
+For each category below, search for and compare at least 3-4 real candidates, calculate/compare their distance from the exact address above, and report only the closest 1-2. Do not default to a large or famous institution unless it is actually verified as the closest option — a smaller, less well-known place that is genuinely nearer is the correct answer.
 
 Return a single JSON object with exactly these keys, no markdown fences, no commentary before or after:
 {"schools": "...", "shoppingCenters": "...", "playgroundsAndParks": "...", "mainRoadsAndTransit": "..."}
 
-- schools: Primary, secondary, or higher education institutions nearby.
-- shoppingCenters: Malls, supermarkets, or local commercial centers nearby.
-- playgroundsAndParks: Family recreational areas and green spaces nearby.
-- mainRoadsAndTransit: Highways, arterial roads, and public transit links nearby.
+- schools: Primary, secondary, or higher education institutions closest to the address.
+- shoppingCenters: Malls, supermarkets, or local commercial centers closest to the address.
+- playgroundsAndParks: Family recreational areas and green spaces closest to the address.
+- mainRoadsAndTransit: Highways, arterial roads, and public transit links closest to the address.
 
-Each value should be 1-2 concise sentences of real, specific detail (named places, approximate distances). If nothing relevant is found, say so briefly rather than inventing details.`;
+Each value must be 1-2 concise sentences naming the specific closest place(s) with their approximate distance from the address (in meters or km). If nothing relevant is found nearby, say so briefly rather than inventing details or substituting a distant well-known alternative.`;
 
-  const response = await runGroundedCall(prompt, { googleMaps: {} }, "Google Maps");
+  const response = await runGroundedCall(prompt, { googleMaps: {} }, "Google Maps", 0.2);
   const pillars = extractJson<MapsPillars>(response.text, "Google Maps");
   return { pillars, sources: extractGroundingSources(response) };
 }
@@ -83,13 +85,14 @@ async function runGroundedCall(
   prompt: string,
   tool: { googleMaps: Record<string, never> } | { googleSearch: Record<string, never> },
   toolLabel: string,
+  temperature?: number,
 ): Promise<GeminiResponse> {
   const client = getGeminiClient();
   try {
     return await client.models.generateContent({
       model: GEMINI_MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { tools: [tool] },
+      config: { tools: [tool], temperature },
     });
   } catch (error) {
     console.error(`[locationService] ${toolLabel} grounding call failed:`, error);
