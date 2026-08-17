@@ -68,6 +68,7 @@ async function callGemini(input: ScriptGenerationInput): Promise<string> {
     return text;
   } catch (error) {
     if (error instanceof ScriptGenerationError) throw error;
+    console.error("[scriptService] Gemini script generation call failed:", error);
     throw new ScriptGenerationError("Failed to reach Gemini for script generation.", error);
   }
 }

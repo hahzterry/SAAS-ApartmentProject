@@ -38,6 +38,7 @@ export async function POST(
     if (error instanceof LocationGroundingError || error instanceof ScriptGenerationError) {
       return NextResponse.json({ error: error.message }, { status: 502 });
     }
+    console.error("[generate-tour] Unexpected error:", error);
     return NextResponse.json({ error: "Unexpected server error." }, { status: 500 });
   }
 }

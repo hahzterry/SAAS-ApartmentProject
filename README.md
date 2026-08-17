@@ -50,8 +50,8 @@ production build), `npm run lint` (ESLint).
    blocks submission.
 3. Optionally attach up to 3 photos (PNG/JPG, ≤10MB each before client-side compression).
 4. Click **Generate Script**. This calls `POST /api/generate-tour`, which researches the
-   address and writes the script — expect roughly 5–15 seconds for the two chained Gemini
-   calls.
+   address and writes the script — expect roughly 5–15 seconds for the three Gemini calls
+   (two grounding calls run in parallel, then one script-writing call).
 5. Read the result, then **Copy** or **Download .txt**.
 
 If a key is missing or invalid, the address field or the submit action will show a plain
@@ -85,7 +85,7 @@ src/
 | `constants.ts` | Single source of truth for tunables: `MAX_DESCRIPTION_WORDS` (50), `MAX_IMAGE_MB`/`MAX_IMAGE_BYTES` (10MB), `MAX_IMAGES` (3), `ALLOWED_IMAGE_TYPES`, `GEMINI_MODEL` (`gemini-3.7-flash`), and the script's target word range/pacing assumption. |
 | `gemini/geminiClient.ts` | Lazily constructs and caches one `GoogleGenAI` client using `GEMINI_API_KEY` from the server environment. Throws a clear error if the key is missing. Nothing outside `lib/gemini` and `lib/services` should import `@google/genai` directly. |
 | `services/validationService.ts` | All Zod schemas, defined once and reused on both sides: `addressSchema`, `descriptionSchema` (enforces the 50-word cap via the shared `countWords` util, so the client counter and server check can never disagree), `imageMetaSchema`/`propertyInputSchema` (server-side shape: images as base64 JSON), and `propertyFormSchema` (client-side shape: images as `File` objects, for `react-hook-form`). |
-| `services/locationService.ts` | Calls Gemini with `googleSearch` + `googleMaps` grounding tools and a strict JSON response schema, asking for the 5 CLAUDE.md pillars (schools, shopping, parks, roads/transit, attractions & vibe). Parses the JSON, pulls citation `sources` out of `groundingMetadata`, and throws a typed `LocationGroundingError` on any failure. Knows nothing about scripts. |
+| `services/locationService.ts` | Gemini rejects any request that combines the `googleSearch` and `googleMaps` grounding tools in one call (400 `INVALID_ARGUMENT`) — confirmed by direct testing — so this runs **two grounded calls in parallel** via `Promise.all`: `queryMapsGrounding` (Maps tool) covers the concrete nearby-places pillars (schools, shopping, parks, roads/transit), `querySearchGrounding` (Search tool) covers the qualitative attractions/vibe pillar. Google Maps grounding also can't be combined with a structured `responseSchema`, so both calls prompt for plain JSON text and parse it defensively (`extractJson` strips markdown code fences if the model adds them). Merges both results' pillars and citation `sources` into one `LocationHighlights`, and throws a typed `LocationGroundingError` on any failure. Knows nothing about scripts. |
 | `services/scriptService.ts` | Builds one prompt that explicitly ranks inputs — description primary, location highlights secondary, photos tertiary/optional — and asks for a 65–75 word narration. Attaches any images as inline multimodal parts. Computes `wordCount`/`estimatedSeconds` itself (doesn't trust the model's self-reported timing) and does one corrective retry if the word count drifts far outside range. Throws `ScriptGenerationError` on failure. Knows nothing about grounding. |
 | `utils/wordCount.ts` | The single `countWords()` function used everywhere a word count matters (live UI counter, Zod validation) — guarantees they can't drift apart. |
 | `utils/fileHelpers.ts` | Client-side only: `validateImageFile()` (type/size check, mirrors the Zod schema for instant feedback) and `fileToPropertyImage()` (downscales large images on a `<canvas>` to ~1600px/JPEG quality 0.8, then base64-encodes) — keeps the JSON payload to `/api/generate-tour` well under typical serverless body-size limits. |
@@ -123,7 +123,7 @@ import from here — no shape is ever redefined locally.
 | `Button.tsx` | Centralizes the Apple HIG micro-interaction (`active:scale-[0.98] transition-all duration-200`) with `primary` (berry) / `secondary` (glass) variants and a loading spinner state. |
 | `TextArea.tsx` | Styled textarea with an optional inline error message. |
 | `Badge.tsx` | Small pill used for the location-highlight labels. |
-| `Spinner.tsx` | Loading indicator shown while the two Gemini calls are in flight. |
+| `Spinner.tsx` | Loading indicator shown while the Gemini calls are in flight. |
 | `WordCounter.tsx` | Pure display component: renders `count / max words`, shifting color (slate → berry → red) as the limit approaches/passes. |
 
 ---
@@ -138,8 +138,10 @@ import from here — no shape is ever redefined locally.
 3. **API route** (`app/api/generate-tour/route.ts`) re-validates the body with
    `validatePropertyInput` (server-side Zod, `propertyInputSchema`) — this is the real
    security boundary, since client validation can be bypassed.
-4. **`locationService.getLocationHighlights(address)`** calls Gemini with Search + Maps
-   grounding, requesting strict JSON for the 5 pillars, and returns `LocationHighlights`.
+4. **`locationService.getLocationHighlights(address)`** fires two grounded Gemini calls in
+   parallel (Maps grounding for schools/shopping/parks/roads, Search grounding for
+   attractions/vibe — they can't be combined into one call), merges the pillars and
+   citation sources, and returns `LocationHighlights`.
 5. **`scriptService.generateScript(...)`** takes that result plus the description and any
    images, builds the priority-ordered prompt, calls Gemini again, and returns
    `ScriptGenerationResult` (script text + computed word count/timing).
