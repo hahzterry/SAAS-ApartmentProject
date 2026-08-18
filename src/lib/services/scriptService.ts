@@ -51,7 +51,9 @@ REQUIREMENTS:
 - Warm, high-converting, natural voiceover tone — not a bullet list.
 - Open with a hook about the apartment itself, close with a sense of lifestyle/location.
 - Output ONLY the narration script text, with no title, labels, or quotation marks.
-- make sure to include some of the highlights inside the script, but not make it the center of the script`;
+- make sure to include some of the highlights inside the script, but not make it the center of the script
+- make the script as natural and selling as possible, remember were advertising an apartment/house for sale.
+- add AT LEAST but not AT MOST 1 of the highlights inside the script, whichever highlight seems best selling.`;
 }
 
 async function callGemini(input: ScriptGenerationInput): Promise<string> {

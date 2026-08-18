@@ -1,6 +1,7 @@
 "use client";
 
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
+import { clsx } from "clsx";
 import { MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -63,14 +64,23 @@ export function AddressAutocompleteInput({ value, onChange, error }: AddressAuto
 
   return (
     <div>
-      <div
-        className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/70 backdrop-blur-md px-4 py-1 shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-berry/50"
-      >
-        <MapPin className="h-4 w-4 shrink-0 text-berry" />
-        <div ref={containerRef} className="w-full min-h-[2.75rem] flex items-center">
-          {loadError ? (
-            <span className="text-sm text-slate-400">{loadError}</span>
-          ) : null}
+      <div className="relative rounded-xl transition-all duration-200 focus-within:ring-2 focus-within:ring-berry/50">
+        {/* Decorative blur lives on its own layer — see GlassCard for why backdrop-blur
+            can't sit directly on an ancestor of the Google autocomplete element. */}
+        <div
+          aria-hidden
+          className={clsx(
+            "absolute inset-0 -z-10 rounded-xl border bg-white/70 backdrop-blur-md shadow-sm",
+            error ? "border-red-400" : "border-white/20",
+          )}
+        />
+        <div className="flex items-center gap-2 px-4 py-1">
+          <MapPin className="h-4 w-4 shrink-0 text-berry" />
+          <div ref={containerRef} className="w-full min-h-[2.75rem] flex items-center">
+            {loadError ? (
+              <span className="text-sm text-slate-400">{loadError}</span>
+            ) : null}
+          </div>
         </div>
       </div>
       {value ? <p className="mt-1 text-sm text-slate-500">Selected: {value}</p> : null}
