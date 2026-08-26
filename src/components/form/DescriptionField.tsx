@@ -15,7 +15,7 @@ export const DescriptionField = forwardRef<HTMLTextAreaElement, DescriptionField
       <TextArea
         ref={ref}
         value={value}
-        rows={4}
+        rows={3}
         placeholder='e.g. "5 room apartment near the sea with 3 bathrooms, a big balcony..."'
         error={error}
         {...props}

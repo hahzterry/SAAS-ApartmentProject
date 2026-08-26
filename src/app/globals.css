@@ -5,6 +5,8 @@
   --foreground: #0f172a;
   --berry: #c2185b;
   --sky: #e0f2fe;
+  --ink: #1f2329;
+  --indigo: #243b8f;
 }
 
 @theme inline {
@@ -12,6 +14,8 @@
   --color-foreground: var(--foreground);
   --color-berry: var(--berry);
   --color-sky: var(--sky);
+  --color-ink: var(--ink);
+  --color-indigo: var(--indigo);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

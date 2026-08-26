@@ -3,7 +3,9 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_DESCRIPTION_WORDS,
   MAX_IMAGES,
+  MAX_IMAGES_PER_ROOM_VIDEO,
   MAX_IMAGE_BYTES,
+  ROOM_VIDEO_KEYS,
 } from "@/lib/constants";
 import { countWords } from "@/lib/utils/wordCount";
 
@@ -57,3 +59,35 @@ export const propertyFormSchema = z.object({
 });
 
 export type PropertyFormValues = z.infer<typeof propertyFormSchema>;
+
+export const roomVideoKeySchema = z.enum(ROOM_VIDEO_KEYS);
+
+/** Server-side shape: images arrive as base64 JSON, same as propertyInputSchema. */
+export const roomVideoFieldSchema = z.object({
+  key: roomVideoKeySchema,
+  images: z.array(imageMetaSchema).min(1).max(MAX_IMAGES_PER_ROOM_VIDEO),
+});
+
+export const generateRoomVideosRequestSchema = z.object({
+  fields: z.array(roomVideoFieldSchema).min(1, "Add at least one photo before generating videos."),
+});
+
+export type GenerateRoomVideosParseResult = ReturnType<typeof generateRoomVideosRequestSchema.safeParse>;
+
+export function validateGenerateRoomVideosInput(data: unknown): GenerateRoomVideosParseResult {
+  return generateRoomVideosRequestSchema.safeParse(data);
+}
+
+/** Client-side shape for React Hook Form: images are still File objects at this stage. */
+export const roomVideoFormFieldSchema = z.object({
+  key: roomVideoKeySchema,
+  images: z
+    .array(z.instanceof(File))
+    .max(MAX_IMAGES_PER_ROOM_VIDEO, `Up to ${MAX_IMAGES_PER_ROOM_VIDEO} images per room.`),
+});
+
+export const roomVideoFormSchema = z.object({
+  fields: z.array(roomVideoFormFieldSchema),
+});
+
+export type RoomVideoFormValues = z.infer<typeof roomVideoFormSchema>;

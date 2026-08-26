@@ -55,7 +55,8 @@ Return a single JSON object with exactly these keys, no markdown fences, no comm
 - playgroundsAndParks: Family recreational areas and green spaces closest to the address.
 - mainRoadsAndTransit: Highways, arterial roads, and public transit links closest to the address.
 
-Each value must be 1-2 concise sentences naming the specific closest place(s) with their approximate distance from the address (in meters or km). If nothing relevant is found nearby, say so briefly rather than inventing details or substituting a distant well-known alternative.`;
+Each value must be 1-2 concise sentences naming the specific closest place(s) with their approximate distance from the address (in meters or km). If nothing relevant is found nearby, say so briefly rather than inventing details or substituting a distant well-known alternative.
+return the values in hebrew`;
 
   const response = await runGroundedCall(prompt, { googleMaps: {} }, "Google Maps", 0.2);
   const pillars = extractJson<MapsPillars>(response.text, "Google Maps");
@@ -72,7 +73,8 @@ Return a single JSON object with exactly this key, no markdown fences, no commen
 
 - attractionsAndVibe: Nearby highlights (e.g. beach/gym/pool within 500m) plus the qualitative neighborhood vibe (quiet, safe, family-friendly, etc), drawing on real local reviews or coverage where available.
 
-The value should be 1-2 concise sentences of real, specific detail. If nothing relevant is found, say so briefly rather than inventing details.`;
+The value should be 1-2 concise sentences of real, specific detail. If nothing relevant is found, say so briefly rather than inventing details.
+return it in hebrew.`;
 
   const response = await runGroundedCall(prompt, { googleSearch: {} }, "Google Search");
   const pillars = extractJson<SearchPillars>(response.text, "Google Search");

@@ -49,11 +49,16 @@ NEIGHBORHOOD HIGHLIGHTS (secondary):
 REQUIREMENTS:
 - Target length: ${SCRIPT_MIN_WORDS}-${SCRIPT_MAX_WORDS} spoken words (about ${minSeconds}-${maxSeconds} seconds read aloud).
 - Warm, high-converting, natural voiceover tone — not a bullet list.
-- Open with a hook about the apartment itself, close with a sense of lifestyle/location.
+- Open with a hook about the apartment itself so people keep watching, close with a sense of lifestyle/location.
 - Output ONLY the narration script text, with no title, labels, or quotation marks.
 - make sure to include some of the highlights inside the script, but not make it the center of the script
 - make the script as natural and selling as possible, remember were advertising an apartment/house for sale.
-- add AT LEAST but not AT MOST 1 of the highlights inside the script, whichever highlight seems best selling.`;
+- add AT LEAST but not AT MOST 1 of the highlights inside the script, whichever highlight seems best selling.
+- the highlight should not be just a normal part of reading in the script but with a stop to acknowledge the highlight, for example : "one of the reasons this is a premium location is ...." , this is just an example, use your own proffessional words you see fit.
+- make the script be selling, remember were creating an ad for the apartment so add point that help sell the house and make intrest in it
+- write the script as 3 short paragraphs of the script, so i can create 3 videos , 1 for each paragraph.
+-make the script as short and fast paced as you can, it cannot exceed the 30 secs to speak, a hook at the start (as part of the first paragraph) then fast paced high conversion speech
+- after you thought of the script write it as hebrew language`;
 }
 
 async function callGemini(input: ScriptGenerationInput): Promise<string> {

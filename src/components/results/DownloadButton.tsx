@@ -15,7 +15,7 @@ export function DownloadButton({ text, filename = "property-script.txt" }: { tex
   }
 
   return (
-    <Button variant="secondary" onClick={handleDownload} icon={<Download className="h-4 w-4" />}>
+    <Button onClick={handleDownload} icon={<Download className="h-4 w-4" />}>
       Download .txt
     </Button>
   );

@@ -1,3 +1,5 @@
+import type { ROOM_VIDEO_KEYS } from "@/lib/constants";
+
 export type ImageMimeType = "image/png" | "image/jpeg" | "image/jpg";
 
 export interface PropertyImage {
@@ -48,4 +50,32 @@ export interface GenerateTourResponse {
 export interface ApiErrorResponse {
   error: string;
   fieldErrors?: Record<string, string[]>;
+}
+
+export type RoomVideoKey = (typeof ROOM_VIDEO_KEYS)[number];
+
+export interface RoomVideoFieldInput {
+  key: RoomVideoKey;
+  images: PropertyImage[];
+}
+
+export interface GenerateRoomVideosRequestBody {
+  fields: RoomVideoFieldInput[];
+}
+
+export interface GeneratedRoomVideo {
+  mimeType: string;
+  /** Base64-encoded video data, no "data:" prefix. */
+  data: string;
+}
+
+export interface RoomVideoFieldResult {
+  key: RoomVideoKey;
+  status: "success" | "error";
+  video?: GeneratedRoomVideo;
+  error?: string;
+}
+
+export interface GenerateRoomVideosResponse {
+  results: RoomVideoFieldResult[];
 }

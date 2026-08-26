@@ -8,9 +8,10 @@ import { useMemo, useRef, useState } from "react";
 interface ImageUploadFieldProps {
   files: File[];
   onChange: (files: File[]) => void;
+  max?: number;
 }
 
-export function ImageUploadField({ files, onChange }: ImageUploadFieldProps) {
+export function ImageUploadField({ files, onChange, max = MAX_IMAGES }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +22,7 @@ export function ImageUploadField({ files, onChange }: ImageUploadFieldProps) {
     setError(null);
 
     const incoming = Array.from(selected);
-    const combined = [...files, ...incoming].slice(0, MAX_IMAGES);
+    const combined = [...files, ...incoming].slice(0, max);
 
     for (const file of incoming) {
       const validationError = validateImageFile(file);
@@ -30,8 +31,8 @@ export function ImageUploadField({ files, onChange }: ImageUploadFieldProps) {
         return;
       }
     }
-    if (files.length + incoming.length > MAX_IMAGES) {
-      setError(`You can attach up to ${MAX_IMAGES} images.`);
+    if (files.length + incoming.length > max) {
+      setError(`You can attach up to ${max} images.`);
     }
 
     onChange(combined);
@@ -60,7 +61,7 @@ export function ImageUploadField({ files, onChange }: ImageUploadFieldProps) {
           </div>
         ))}
 
-        {files.length < MAX_IMAGES && (
+        {files.length < max && (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
@@ -82,7 +83,7 @@ export function ImageUploadField({ files, onChange }: ImageUploadFieldProps) {
       />
 
       {error ? <p className="mt-1 text-sm text-red-500">{error}</p> : null}
-      <p className="mt-1 text-xs text-slate-400">Optional. Up to {MAX_IMAGES} images, PNG/JPG, 10MB each.</p>
+      <p className="mt-1 text-xs text-slate-400">Optional. Up to {max} images, PNG/JPG, 10MB each.</p>
     </div>
   );
 }

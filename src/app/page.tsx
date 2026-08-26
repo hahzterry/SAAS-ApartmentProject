@@ -1,8 +1,8 @@
 "use client";
 
 import { PropertyForm } from "@/components/form/PropertyForm";
+import { RoomVideoTourForm } from "@/components/form/RoomVideoTourForm";
 import { ScriptResultPanel } from "@/components/results/ScriptResultPanel";
-import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import type { GenerateTourResponse } from "@/types/property";
 import { MapPinned, Mic, Sparkles } from "lucide-react";
@@ -13,51 +13,49 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false);
 
   return (
-    <div className="isolate relative min-h-full overflow-hidden bg-background px-4 py-12 sm:py-16">
-      {/*
-        `isolate` makes this div its own stacking context so its opaque bg-background
-        paints as the context's base layer, below the -z-10 decorative blobs. Without
-        it, a plain `position: relative` div doesn't form a stacking context, so its
-        own background paints as a normal in-flow layer *above* negative-z-index
-        children, hiding them entirely.
-      */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-24 -top-32 h-80 w-80 rounded-full bg-berry/20 blur-3xl" />
-        <div className="absolute -right-28 top-10 h-96 w-96 rounded-full bg-sky blur-3xl" />
-        <div className="absolute bottom-[-6rem] left-1/3 h-72 w-72 rounded-full bg-berry/10 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.06)_1px,transparent_0)] bg-[length:24px_24px]" />
-      </div>
+    <div className="min-h-full bg-foreground  bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.09)_1px,transparent_0)] bg-[length:28px_28px]">
+      <section className="isolate relative overflow-hidden  px-4 pb-32 pt-16 sm:pt-20 ">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden  ">
+          <div className="absolute bottom-[-8rem] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-berry/30 blur-3xl" />
+        </div>
 
-      <div className="mx-auto max-w-2xl">
-        <header className="mb-10 text-center">
-          <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-berry text-white shadow-xl shadow-berry/20">
-            <Sparkles className="h-7 w-7" />
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-berry text-white shadow-xl shadow-berry/40">
+            <Sparkles className="h-8 w-8" />
           </div>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
             Property Narration Script Generator
           </h1>
-          <p className="mx-auto mt-3 max-w-lg text-balance text-slate-600">
+          <p className="mx-auto mt-4 max-w-xl text-balance text-base text-white/70 sm:text-lg">
             Drop in an address and a short description — we&apos;ll research the neighborhood and write a
-            polished 30-second voiceover script, ready to record.
+            polished (35-45) second voiceover script, ready to record.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            <Badge>
-              <MapPinned className="h-3 w-3" />
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+              <MapPinned className="h-3.5 w-3.5 text-berry" />
               Google Maps grounding
-            </Badge>
-            <Badge>
-              <Sparkles className="h-3 w-3" />
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-berry" />
               Gemini-powered research
-            </Badge>
-            <Badge>
-              <Mic className="h-3 w-3" />
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+              <Mic className="h-3.5 w-3.5 text-berry" />
               30-second script
-            </Badge>
+            </span>
           </div>
-        </header>
+        </div>
+      </section>
 
+      {/*
+        relative z-10: the hero above uses `isolate`, which pulls it into the
+        "stack level 0" paint bucket ahead of plain static siblings — without its
+        own stacking context here, this card would paint *behind* the hero
+        wherever the negative margin makes them overlap, hiding the card entirely.
+      */}
+      <div className="relative z-10 mx-auto -mt-20 w-[92%] max-w-6xl pb-20 sm:-mt-24">
         <PropertyForm
           onResult={setResult}
           submitting={submitting}
@@ -65,16 +63,20 @@ export default function Home() {
         />
 
         {submitting && !result ? (
-          <div className="mt-10 rounded-2xl border border-white/40 bg-white/50 p-6 backdrop-blur-sm">
+          <div className="mt-8 rounded-2xl border border-berry/15 bg-white p-6 shadow-sm">
             <Spinner label="Researching the neighborhood and writing your script..." />
           </div>
         ) : null}
 
         {result ? (
-          <div className="mt-10">
+          <div className="mt-8">
             <ScriptResultPanel result={result} />
           </div>
         ) : null}
+
+        <div className="mt-8">
+          <RoomVideoTourForm />
+        </div>
 
         <footer className="mt-16 text-center text-xs text-slate-400">
           Powered by Google Gemini with Maps &amp; Search grounding.
