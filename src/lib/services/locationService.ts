@@ -1,4 +1,8 @@
-import { getGeminiClient } from "@/lib/gemini/geminiClient";
+import {
+  describeUpstreamStatus,
+  getGeminiClient,
+  withGeminiRetry,
+} from "@/lib/gemini/geminiClient";
 import { GEMINI_MODEL } from "@/lib/constants";
 import type { GroundingSource, LocationHighlights } from "@/types/property";
 
@@ -91,14 +95,21 @@ async function runGroundedCall(
 ): Promise<GeminiResponse> {
   const client = getGeminiClient();
   try {
-    return await client.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { tools: [tool], temperature },
-    });
+    return await withGeminiRetry(
+      () =>
+        client.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: { tools: [tool], temperature },
+        }),
+      `${toolLabel} grounding`,
+    );
   } catch (error) {
     console.error(`[locationService] ${toolLabel} grounding call failed:`, error);
-    throw new LocationGroundingError(`Failed to reach Gemini for ${toolLabel} grounding.`, error);
+    throw new LocationGroundingError(
+      `Failed to reach Gemini for ${toolLabel} grounding${describeUpstreamStatus(error)}.`,
+      error,
+    );
   }
 }
 

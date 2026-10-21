@@ -6,7 +6,7 @@ import { ImageUploadField } from "@/components/form/ImageUploadField";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { MAX_IMAGES_PER_ROOM_VIDEO, ROOM_VIDEO_KEYS, ROOM_VIDEO_LABELS } from "@/lib/constants";
-import { fileToPropertyImage } from "@/lib/utils/fileHelpers";
+import { base64ToObjectUrl, fileToPropertyImage } from "@/lib/utils/fileHelpers";
 import type { ApiErrorResponse, GenerateRoomVideosResponse, RoomVideoKey } from "@/types/property";
 
 type FieldStatus = "idle" | "generating" | "done" | "error";
@@ -23,15 +23,6 @@ function createInitialFields(): Record<RoomVideoKey, FieldState> {
     (key): [RoomVideoKey, FieldState] => [key, { images: [], status: "idle" }],
   );
   return Object.fromEntries(entries) as Record<RoomVideoKey, FieldState>;
-}
-
-function base64ToObjectUrl(base64: string, mimeType: string): string {
-  const byteChars = atob(base64);
-  const byteNumbers = new Uint8Array(byteChars.length);
-  for (let i = 0; i < byteChars.length; i++) {
-    byteNumbers[i] = byteChars.charCodeAt(i);
-  }
-  return URL.createObjectURL(new Blob([byteNumbers], { type: mimeType }));
 }
 
 export function RoomVideoTourForm() {

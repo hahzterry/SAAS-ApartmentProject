@@ -5,6 +5,8 @@ import {
   MAX_IMAGES,
   MAX_IMAGES_PER_ROOM_VIDEO,
   MAX_IMAGE_BYTES,
+  ROOM_DECOR_SLOT_KEYS,
+  ROOM_DECOR_TYPES,
   ROOM_VIDEO_KEYS,
 } from "@/lib/constants";
 import { countWords } from "@/lib/utils/wordCount";
@@ -91,3 +93,26 @@ export const roomVideoFormSchema = z.object({
 });
 
 export type RoomVideoFormValues = z.infer<typeof roomVideoFormSchema>;
+
+export const roomDecorSlotKeySchema = z.enum(ROOM_DECOR_SLOT_KEYS);
+export const roomDecorTypeSchema = z.enum(ROOM_DECOR_TYPES);
+
+/** Server-side shape: the source photo arrives as base64 JSON, same as propertyInputSchema. */
+export const roomDecorSlotSchema = z.object({
+  key: roomDecorSlotKeySchema,
+  roomType: roomDecorTypeSchema,
+  image: imageMetaSchema,
+});
+
+export const generateRoomDecorRequestSchema = z.object({
+  slots: z
+    .array(roomDecorSlotSchema)
+    .min(1, "Add at least one photo before staging a room.")
+    .max(ROOM_DECOR_SLOT_KEYS.length),
+});
+
+export type GenerateRoomDecorParseResult = ReturnType<typeof generateRoomDecorRequestSchema.safeParse>;
+
+export function validateGenerateRoomDecorInput(data: unknown): GenerateRoomDecorParseResult {
+  return generateRoomDecorRequestSchema.safeParse(data);
+}

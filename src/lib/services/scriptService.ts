@@ -1,4 +1,8 @@
-import { getGeminiClient } from "@/lib/gemini/geminiClient";
+import {
+  describeUpstreamStatus,
+  getGeminiClient,
+  withGeminiRetry,
+} from "@/lib/gemini/geminiClient";
 import {
   GEMINI_MODEL,
   SCRIPT_MAX_WORDS,
@@ -73,10 +77,14 @@ async function callGemini(input: ScriptGenerationInput): Promise<string> {
   }
 
   try {
-    const response = await client.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: [{ role: "user", parts }],
-    });
+    const response = await withGeminiRetry(
+      () =>
+        client.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: [{ role: "user", parts }],
+        }),
+      "script generation",
+    );
 
     const text = response.text?.trim();
     if (!text) {
@@ -86,7 +94,10 @@ async function callGemini(input: ScriptGenerationInput): Promise<string> {
   } catch (error) {
     if (error instanceof ScriptGenerationError) throw error;
     console.error("[scriptService] Gemini script generation call failed:", error);
-    throw new ScriptGenerationError("Failed to reach Gemini for script generation.", error);
+    throw new ScriptGenerationError(
+      `Failed to reach Gemini for script generation${describeUpstreamStatus(error)}.`,
+      error,
+    );
   }
 }
 

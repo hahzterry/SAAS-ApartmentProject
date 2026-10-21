@@ -1,6 +1,7 @@
 "use client";
 
 import { PropertyForm } from "@/components/form/PropertyForm";
+import { RoomDecorForm } from "@/components/form/RoomDecorForm";
 import { RoomVideoTourForm } from "@/components/form/RoomVideoTourForm";
 import { ScriptResultPanel } from "@/components/results/ScriptResultPanel";
 import { Spinner } from "@/components/ui/Spinner";
@@ -73,6 +74,10 @@ export default function Home() {
             <ScriptResultPanel result={result} />
           </div>
         ) : null}
+
+        <div className="mt-8">
+          <RoomDecorForm />
+        </div>
 
         <div className="mt-8">
           <RoomVideoTourForm />

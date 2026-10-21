@@ -65,3 +65,13 @@ export async function fileToPropertyImage(file: File): Promise<PropertyImage> {
     data,
   };
 }
+
+/** Browser-only: turns a base64 media payload from the API into a blob URL for <img>/<video>. */
+export function base64ToObjectUrl(base64: string, mimeType: string): string {
+  const byteChars = atob(base64);
+  const bytes = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) {
+    bytes[i] = byteChars.charCodeAt(i);
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: mimeType }));
+}
